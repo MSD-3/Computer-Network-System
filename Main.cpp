@@ -96,11 +96,13 @@ class IPv4Format:public BinaryFormat,public DecimalFormat{             //inherit
         }
     }
 
-    void display(){     //displaying IP in both formats
+    void display(int num_networkbits){     //displaying IP in both formats
         cout<<"\nDotted Decimal Format - ";
         displayDecimal();
+        cout<<"/"<<num_networkbits;
         cout<<"\nBinary Format - ";
         displayBinary();
+        cout<<"/"<<num_networkbits;
         cout<<endl;
     }
 };
@@ -203,10 +205,10 @@ class classlessIPv4{
         networkID= new IPv4Format(nid[0],nid[1],nid[2],nid[3]);
     }
 
-    void calculateDBA(){
+    void calculateDBA(){        //calculates DBA address of the network,sets host bits to 1
         int PIPDecimal[4],DBA[4],calc=0;
         privateIP->getDecimal(PIPDecimal);
-        if(num_hostbits<=8){
+        if(num_hostbits<=8){    
             DBA[0]=PIPDecimal[0];
             DBA[1]=PIPDecimal[1];
             DBA[2]=PIPDecimal[2];
@@ -222,7 +224,6 @@ class classlessIPv4{
             for(int i=0;i<(num_hostbits-8);i++){
                 calc+=pow(2,i);
             }
-            cout<<"case 2 calc : "<<calc;
             DBA[2]=calc|PIPDecimal[2];
             DBA[3]=255;
         }
@@ -248,16 +249,16 @@ class classlessIPv4{
         networkDBA=new IPv4Format(DBA[0],DBA[1],DBA[2],DBA[3]);
     }
 
-    void display(){
+    void display(){     //displays information regarding the classlessIP
         cout<<"Number of host bits required : "<<num_hostbits;
         cout<<"\nPrivate IP address -";
-        privateIP->display();
+        privateIP->display(num_networkbits);
         cout<<"\nNetwork Mask - ";
-        networkMask->display();
+        networkMask->display(num_networkbits);
         cout<<"\nPrivate Netowrk ID -";
-        networkID->display();
+        networkID->display(num_networkbits);
         cout<<"\nNetwork DBA - ";
-        networkDBA->display();
+        networkDBA->display(num_networkbits);
     }
 
     
