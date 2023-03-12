@@ -24,64 +24,64 @@ class BinaryFormat{     //class to convert IPv4 address to binary
             binaryString+=temp+'.';
             *bintemp[i]=stoi(temp);
         }
-        binaryString.resize(binaryString.size()-1);
+        binaryString.resize(binaryString.size()-1); //removing the extra . in the end
     }
 
-    void reverse(string &str){
+    void reverse(string &str){      //reversing the string
         int n= str.length();
         for(int i=0;i<n/2;i++){
             swap(str[i],str[n-i-1]);
         }
     }
 
-    void fillbits(string &str){
+    void fillbits(string &str){     //filling the remaining bits with 0 to make it 8 bit long
         while (str.length()<8)
             str+='0';
         return;        
     }
 
-    void getBinary(int *arr){
+    void getBinary(int *arr){       //call by reference to store the binary values 
         arr[0]=b1;
         arr[1]=b2;
         arr[2]=b3;
         arr[3]=b4;
     }
 
-    string getBinaryString(){
+    string getBinaryString(){       //returns binary String 
         return binaryString;
     }
 
-    void displayBinary(){
+    void displayBinary(){           //displays binary string
         cout<<binaryString;
     }    
 };
 
-class DecimalFormat{
+class DecimalFormat{                
     int d1,d2,d3,d4;
     string decimalString;
     public:
-    DecimalFormat(int n1,int n2,int n3,int n4){
+    DecimalFormat(int n1,int n2,int n3,int n4){ 
         d1=n1,d2=n2,d3=n3,d4=n4;
         int arr[]={d1,d2,d3,d4};
         decimalString=to_string(d1)+"."+to_string(d2)+"."+to_string(d3)+"."+to_string(d4);
     }
 
-    void getDecimal(int *arr){
+    void getDecimal(int *arr){      //call by reference to store the decimal values
         arr[0]=d1;
         arr[1]=d2;
         arr[2]=d3;
         arr[3]=d4;
     }
-    string getDecimalString(){
+    string getDecimalString(){      //returns Decimal string
         return decimalString;
     }
-    void displayDecimal(){
+    void displayDecimal(){          //displays decimal string
         cout<<decimalString;
     }
 };
 
 
-class IPv4Format:public BinaryFormat,public DecimalFormat{
+class IPv4Format:public BinaryFormat,public DecimalFormat{             //inheriting BinaryFormat and DecimalFormat classes
     bool checkIPValid(int n1,int n2,int n3,int n4){       //checks if ip range is out of bounds ,returns false if invalid
         if((n1<=255 && n1>=0)&&(n2<=255 && n2>=0)&&(n3<=255 && n3>=0)&&(n4<=255 && n4>=0))
             return true;
@@ -89,14 +89,14 @@ class IPv4Format:public BinaryFormat,public DecimalFormat{
     }
 
     public:
-    IPv4Format(int n1,int n2,int n3,int n4):BinaryFormat(n1,n2,n3,n4),DecimalFormat(n1,n2,n3,n4){
+    IPv4Format(int n1,int n2,int n3,int n4):BinaryFormat(n1,n2,n3,n4),DecimalFormat(n1,n2,n3,n4){   //paramiterized constructor
         if(!checkIPValid(n1,n2,n3,n4)){
             cout<<"\nIP invalid!\nAborting program!";
             abort();
         }
     }
 
-    void display(){
+    void display(){     //displaying IP in both formats
         cout<<"\nDotted Decimal Format - ";
         displayDecimal();
         cout<<"\nBinary Format - ";
@@ -106,7 +106,15 @@ class IPv4Format:public BinaryFormat,public DecimalFormat{
 };
 
 class classlessIPv4{
-
+    /*
+    num_hosts stores the number of hosts required - user input
+    num_hostbits stores the calculated number of host bits required
+    num_netowrkbits stores the calculated number of network bits required
+    *privateIP  stores the Private IP inputed by the user
+    *networkMAsk stores the network mask of the privateIP
+    *networkID stores the netowrk ID of the network
+    *networkDBA stores the netowrk Direct broadcast Address of the netowrk  
+    */
     int num_hosts,num_hostbits,num_networkbits;
     IPv4Format *privateIP,*networkMask,*networkID,*networkDBA;
     int nm1,nm2,nm3,nm4=0;
@@ -130,7 +138,7 @@ class classlessIPv4{
         return temp;
     }
 
-    void createNetworkMask(){
+    void createNetworkMask(){       //creates network mask according to input
         if(num_hostbits<=8){
             nm1=nm2=nm3=255;
             nm4=maskcalc(0);
@@ -153,14 +161,14 @@ class classlessIPv4{
             cout<<"Number of hosts too large for a single network.";
     }
 
-    void generateIPAddresses(){
+    void generateIPAddresses(){     //generates all possible IP addresses 
         calculateNID();
         calculateDBA();
         int IP[4],NID[4],DBA[4],temp[4];
         networkID->getDecimal(NID);
         networkDBA->getDecimal(DBA);
         fstream fout;
-        fout.open("GeneratedIP.txt",ios::out);
+        fout.open("GeneratedIP.txt",ios::out);      //stores output in GeneratedIP.txt
         for(int i=0;i<4;i++){
             temp[i]=NID[i];
         }
@@ -185,12 +193,12 @@ class classlessIPv4{
         }
     }
     
-    void calculateNID(){
+    void calculateNID(){        //function to calculate NID
         int nid[4],PIPDecimal[4],MaskDecimal[4];
         privateIP->getDecimal(PIPDecimal);
         networkMask->getDecimal(MaskDecimal);
         for(int i=0;i<4;i++){
-            nid[i]=PIPDecimal[i]&MaskDecimal[i];
+            nid[i]=PIPDecimal[i]&MaskDecimal[i];    //bitwise and the 4 parts of the IP with Network Mask
         }
         networkID= new IPv4Format(nid[0],nid[1],nid[2],nid[3]);
     }
@@ -198,7 +206,7 @@ class classlessIPv4{
     void calculateDBA(){
         int PIPDecimal[4],DBA[4],calc=0;
         privateIP->getDecimal(PIPDecimal);
-        if(num_hostbits<8){
+        if(num_hostbits<=8){
             DBA[0]=PIPDecimal[0];
             DBA[1]=PIPDecimal[1];
             DBA[2]=PIPDecimal[2];
@@ -206,6 +214,36 @@ class classlessIPv4{
                 calc+=pow(2,i);
             }
             DBA[3]=calc|PIPDecimal[3];
+        }
+
+        else if(num_hostbits<=16){
+            DBA[0]=PIPDecimal[0];
+            DBA[1]=PIPDecimal[1];
+            for(int i=0;i<(num_hostbits-8);i++){
+                calc+=pow(2,i);
+            }
+            cout<<"case 2 calc : "<<calc;
+            DBA[2]=calc|PIPDecimal[2];
+            DBA[3]=255;
+        }
+        else if(num_hostbits<=24){
+            DBA[0]=PIPDecimal[0];
+            for(int i=0;i<(num_hostbits-16);i++){
+                calc+=pow(2,i);
+            }
+            DBA[1]=calc|PIPDecimal[1];
+            DBA[2]=DBA[3]=255;
+        }
+        else if(num_hostbits<=32){
+            for(int i=0;i<(num_hostbits-24);i++){
+                calc+=pow(2,i);
+            }
+            DBA[0]=calc|PIPDecimal[1];
+            DBA[1]=DBA[2]=DBA[3]=255;
+        }
+        else{
+            cout<<"\nError!";
+            abort();
         }
         networkDBA=new IPv4Format(DBA[0],DBA[1],DBA[2],DBA[3]);
     }
