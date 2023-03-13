@@ -70,7 +70,8 @@ class classlessIPv4{
         networkID->getDecimal(NID);
         networkDBA->getDecimal(DBA);
         fstream fout;
-        fout.open("GeneratedIP.txt",ios::out);      //stores output in GeneratedIP.txt
+        fout.open("GeneratedIP.txt",ios::out| ios::app);      //stores output in GeneratedIP.txt
+        fout<<"\nAll Generated IP addresses in network - \n";
         for(int i=0;i<4;i++){
             temp[i]=NID[i];
         }
@@ -93,6 +94,7 @@ class classlessIPv4{
             }
             temp[1]=NID[1];
         }
+        fout.close();
     }
     
     void calculateNID(){        //function to calculate NID
@@ -214,11 +216,15 @@ class Subnetting{
 
     void assignSubnetMask(){
         int hostbitsrequired,subnetbitsrequired,arr[4];
+        fstream fout;
+        fout.open("GeneratedIP.txt",ios::app);
+        fout<<"\n\nSubnets \n\n";
         obj->getDecimalPrivateIP(arr);
         IPv4Format DBA_last(arr[0],arr[1],arr[2],arr[3]);       //declared to store the DBA of last assigned subnet
         classlessIPv4 *subnet;
         
         for(int i=0;i<num_subnets;i++){
+            fout<<"\nSubnet "<<i+1<<endl;
             DBA_last.getDecimal(arr);
             //hostbitsrequired=log2(subnetipnum[i]);
             //subnetbitsrequired=obj->getnum_hostbits()-hostbitsrequired;
@@ -242,6 +248,9 @@ class Subnetting{
 };
 
 int main(){
+    int result = remove("GeneratedIP.txt");
+    if(!result)
+        cout<<"\nRemoved GeneratedIP.txt created due to previous execution of code.\n";
     int hosts,n1,n2,n3,n4,subnet;
     cout<<"Enter number of hosts required : ";
     cin>>hosts;
