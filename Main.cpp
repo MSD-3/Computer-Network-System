@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include<fstream>
+#include <list>
 #include "IPv4Format.cpp"
 using namespace std;
 
@@ -167,6 +168,14 @@ class classlessIPv4{
         return networkDBA;
     }
 
+    IPv4Format *getNID(){
+        return networkID;
+    }
+
+    IPv4Format *getMask(){
+        return networkMask;
+    }
+
     void display(){     //displays information regarding the classlessIP
         cout<<"Number of host bits required : "<<num_hostbits;
         cout<<"\nPrivate IP address -";
@@ -192,6 +201,7 @@ class Subnetting{
     int num_subnets,num_subnetbits,num_accomodablehosts;
     int subnetipnum[100];
     classlessIPv4 *obj;
+    list <classlessIPv4> subnetlist;
     void checkHost_SubnetCountCompatibility(){      //checking if number of hosts required is accomodable after subnetting
         if (obj->getnum_hosts()>num_accomodablehosts){
             cout<<endl<<obj->getnum_hosts()<<" hosts cannot be accomodated in "<<num_subnets<<" subnetted network!\nTip:Reduce number of subnets";
@@ -223,15 +233,33 @@ class Subnetting{
         IPv4Format DBA_last(arr[0],arr[1],arr[2],arr[3]);       //declared to store the DBA of last assigned subnet
         classlessIPv4 *subnet;
         
+        
         for(int i=0;i<num_subnets;i++){
             fout<<"\nSubnet "<<i+1<<endl;
             DBA_last.getDecimal(arr);
             //hostbitsrequired=log2(subnetipnum[i]);
             //subnetbitsrequired=obj->getnum_hostbits()-hostbitsrequired;
             subnet= new classlessIPv4(subnetipnum[i]-2,arr[0],arr[1],arr[2],arr[3]+1);
+            subnetlist.push_back(*subnet);       //adds subnet to the list
             DBA_last = *subnet->getDBA();
             subnet->display();
         }
+    }
+
+    void displayNAT(){
+        list<classlessIPv4>::iterator it;
+        int i;
+        cout<<"\n\n\nNetwork ID\t\tSubnet Mask\t\t\tInterface\n\n";
+        for(it=subnetlist.begin(),i=0;it!=subnetlist.end();it++,i++){
+            IPv4Format *tempNID,*tempMask;
+            tempNID=it->getNID();
+            tempMask=it->getMask();
+            tempNID->displayDecimal();
+            cout<<"\t\t";
+            tempMask->displayDecimal();
+            cout<<"\t\t\t"<<i<<endl;
+        }
+        cout<<"0.0.0.0\t\t\t0.0.0.0\t\t\t\tDefault\n";
     }
     public:
     Subnetting(classlessIPv4 *o, int subnet){       //Subnetting parameterised constructor
@@ -243,6 +271,7 @@ class Subnetting{
         checkHost_SubnetCountCompatibility();
         inputHostSubnet();
         assignSubnetMask();
+        displayNAT();
     }
 
 };
