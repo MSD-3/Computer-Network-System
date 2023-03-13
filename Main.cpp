@@ -22,11 +22,8 @@ class classlessIPv4{
     public:
     classlessIPv4(int hosts,int p1,int p2,int p3,int p4){
         num_hosts=hosts;
-        //num_subnets=subnet;
         num_hostbits=ceil(log2(hosts+2));
         num_networkbits=32-num_hostbits;
-        //num_subnetbits=ceil(log(subnet));
-        //checkHost_SubnetCountCompatibility();
         privateIP=new IPv4Format(p1,p2,p3,p4); //initialising IPv4 to p1.p2.p3.p4
         createNetworkMask();
         networkMask=new IPv4Format(nm1,nm2,nm3,nm4);
