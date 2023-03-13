@@ -5,8 +5,6 @@
 #include "IPv4Format.cpp"
 using namespace std;
 
-
-
 class classlessIPv4{
     /*
     num_hosts stores the number of hosts required - user input
@@ -17,13 +15,18 @@ class classlessIPv4{
     *networkID stores the netowrk ID of the network
     *networkDBA stores the netowrk Direct broadcast Address of the netowrk  
     */
+    //int num_hosts,num_subnets,num_hostbits,num_networkbits,num_subnetbits;
     int num_hosts,num_hostbits,num_networkbits;
     IPv4Format *privateIP,*networkMask,*networkID,*networkDBA;
     int nm1,nm2,nm3,nm4=0;
     public:
     classlessIPv4(int hosts,int p1,int p2,int p3,int p4){
+        num_hosts=hosts;
+        //num_subnets=subnet;
         num_hostbits=ceil(log2(hosts+2));
         num_networkbits=32-num_hostbits;
+        //num_subnetbits=ceil(log(subnet));
+        //checkHost_SubnetCountCompatibility();
         privateIP=new IPv4Format(p1,p2,p3,p4); //initialising IPv4 to p1.p2.p3.p4
         createNetworkMask();
         networkMask=new IPv4Format(nm1,nm2,nm3,nm4);
@@ -149,6 +152,22 @@ class classlessIPv4{
         networkDBA=new IPv4Format(DBA[0],DBA[1],DBA[2],DBA[3]);
     }
 
+    int getnum_hosts(){
+        return num_hosts;
+    }
+
+    int getnum_hostbits(){
+        return num_hostbits;
+    }
+
+    void getDecimalPrivateIP(int *arr){
+        privateIP->getDecimal(arr);
+    }
+
+    IPv4Format *getDBA(){
+        return networkDBA;
+    }
+
     void display(){     //displays information regarding the classlessIP
         cout<<"Number of host bits required : "<<num_hostbits;
         cout<<"\nPrivate IP address -";
@@ -164,12 +183,76 @@ class classlessIPv4{
     
 };
 
+class Subnetting{
+    /*
+    num_subnets stores the number of subnets required -user input
+    num_subnetbits stores number of subnet bits required 
+    num_accomodablehosts stores the number of accomodable hosts after subnetting 
+    subnetipnum stores the closest higher 2^n value to the number of hosts
+    */
+    int num_subnets,num_subnetbits,num_accomodablehosts;
+    int subnetipnum[100];
+    classlessIPv4 *obj;
+    void checkHost_SubnetCountCompatibility(){      //checking if number of hosts required is accomodable after subnetting
+        if (obj->getnum_hosts()>num_accomodablehosts){
+            cout<<endl<<obj->getnum_hosts()<<" hosts cannot be accomodated in "<<num_subnets<<" subnetted network!\nTip:Reduce number of subnets";
+            abort();
+        }
+        return;
+    }
+
+    void inputHostSubnet(){ //stores the number of hosts in each subnet
+        int temp,sum_temp=0;
+        for(int i=0;i<num_subnets;i++){
+            cout<<"\nEnter number of hosts in subnet "<<i+1<<" : ";
+            cin>>temp;
+            subnetipnum[i]=pow(2,ceil(log2(temp)));
+            sum_temp+=subnetipnum[i];
+            if(sum_temp>num_accomodablehosts+2){    //checks if the total number of hosts is getting larger than accomodable number of hosts
+                cout<<"\nHost division in subnet incompatible!! Try again!";
+                inputHostSubnet();
+            }
+        }
+    }
+
+    void assignSubnetMask(){
+        int hostbitsrequired,subnetbitsrequired,arr[4];
+        obj->getDecimalPrivateIP(arr);
+        IPv4Format DBA_last(arr[0],arr[1],arr[2],arr[3]);       //declared to store the DBA of last assigned subnet
+        classlessIPv4 *subnet;
+        
+        for(int i=0;i<num_subnets;i++){
+            DBA_last.getDecimal(arr);
+            //hostbitsrequired=log2(subnetipnum[i]);
+            //subnetbitsrequired=obj->getnum_hostbits()-hostbitsrequired;
+            subnet= new classlessIPv4(subnetipnum[i]-2,arr[0],arr[1],arr[2],arr[3]+1);
+            DBA_last = *subnet->getDBA();
+            subnet->display();
+        }
+    }
+    public:
+    Subnetting(classlessIPv4 *o, int subnet){       //Subnetting parameterised constructor
+        obj=o;
+        num_accomodablehosts=(pow(2,obj->getnum_hostbits())-pow(2,num_subnetbits+1));   //caculating number of accomodable hosts after reserving subnetid and dba for each subnet
+        cout<<"\nNumber of accomodable hosts = "<<num_accomodablehosts;
+        num_subnets=subnet;
+        num_subnetbits=ceil(log(subnet));
+        checkHost_SubnetCountCompatibility();
+        inputHostSubnet();
+        assignSubnetMask();
+    }
+
+};
+
 int main(){
-    int hosts,n1,n2,n3,n4;
+    int hosts,n1,n2,n3,n4,subnet;
     cout<<"Enter number of hosts required : ";
     cin>>hosts;
     cout<<"Enter IP address of private network - ";
     scanf("%d.%d.%d.%d",&n1,&n2,&n3,&n4);
     classlessIPv4 obj(hosts,n1,n2,n3,n4);
     obj.display();
+    cout<<"Enter number of subnet needed - ";
+    cin>>subnet;
+    Subnetting sub(&obj,subnet);
 }
